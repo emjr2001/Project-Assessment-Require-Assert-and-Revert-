@@ -1,34 +1,32 @@
 pragma solidity ^0.8.0;
 
 contract MyContract {
+    address public owner;
+    uint public balance;
 
-mapping (address => uint) public balances;
+    constructor() public {
+        owner = msg.sender;
+        balance = 0;
+    }
 
-event BalanceUpdated(address indexed user, uint newBalance);
+    function deposit(uint amount) public {
+        require(msg.sender == owner, "Only the owner can deposit funds");
+        assert(amount > 0, "Invalid amount");
+        balance += amount;
+    }
 
-function deposit(uint amount) public {
-    require(amount > 0, "Amount must be greater than 0");
+    function withdraw(uint amount) public {
+        require(msg.sender == owner, "Only the owner can withdraw funds");
+        require(amount <= balance, "Insufficient funds");
+        assert(amount > 0, "Invalid amount");
+        balance -= amount;
+    }
 
-    uint currentBalance = balances[msg.sender];
+    function getBalance() public view returns (uint) {
+        return balance;
+    }
 
-    balances[msg.sender] = currentBalance + amount;
-
-    emit BalanceUpdated(msg.sender, balances[msg.sender]);
-}
-
-function withdraw(uint amount) public {
-    require(balances[msg.sender] >= amount, "Insufficient balance");
-
-    uint currentBalance = balances[msg.sender];
-
-    balances[msg.sender] = currentBalance - amount;
-
-    emit BalanceUpdated(msg.sender, balances[msg.sender]);
-}
-
-function checkBalance() public {
-    assert(balances[msg.sender] > 0);
-
-    revert("User's balance is 0 or less");
-}
+    function () payable {
+        revert("This contract does not accept direct payments");
+    }
 }
